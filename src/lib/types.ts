@@ -1,3 +1,4 @@
+
 export type UserRole = "admin" | "driver" | "client";
 
 export interface User {
@@ -21,4 +22,24 @@ export interface StatsCardProps {
   value: string | number;
   description: string;
   icon: React.ReactNode;
+}
+
+export interface Driver {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  status: "active" | "inactive";
+  deliveries: number;
+  rating: number;
+}
+
+export interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  orders: number;
+  joinDate: string;
 }
