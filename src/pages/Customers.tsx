@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/table";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Pen, Trash } from "lucide-react";
 
 const Customers = () => {
   const [searchTerm, setSearchTerm] = useState("");
