@@ -1,10 +1,10 @@
-
 import { Truck, Search, Plus, Pen, Trash } from "lucide-react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Driver } from "@/lib/types";
+import { AddDriverDialog } from "@/components/drivers/AddDriverDialog";
 import {
   Table,
   TableBody,
@@ -57,10 +57,7 @@ const Drivers = () => {
                 <Truck className="h-6 w-6 text-primary-500" />
                 <h1 className="text-2xl font-bold">Drivers</h1>
               </div>
-              <Button>
-                <Plus className="mr-2" />
-                Add Driver
-              </Button>
+              <AddDriverDialog />
             </div>
 
             <div className="mb-6">

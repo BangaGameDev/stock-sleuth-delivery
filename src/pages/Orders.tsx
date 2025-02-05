@@ -1,10 +1,9 @@
-
 import { Package, Search, Plus, Pen, Trash } from "lucide-react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Order } from "@/lib/types";
+import { AddOrderDialog } from "@/components/orders/AddOrderDialog";
 import {
   Table,
   TableBody,
@@ -14,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 const Orders = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -55,10 +55,7 @@ const Orders = () => {
                 <Package className="h-6 w-6 text-primary-500" />
                 <h1 className="text-2xl font-bold">Orders</h1>
               </div>
-              <Button>
-                <Plus className="mr-2" />
-                New Order
-              </Button>
+              <AddOrderDialog />
             </div>
 
             <div className="mb-6">

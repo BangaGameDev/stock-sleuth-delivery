@@ -1,10 +1,9 @@
-
 import { Users, Search, Plus, Pen, Trash } from "lucide-react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Customer } from "@/lib/types";
+import { AddCustomerDialog } from "@/components/customers/AddCustomerDialog";
 import {
   Table,
   TableBody,
@@ -14,6 +13,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Pen, Trash } from "lucide-react";
 
 const Customers = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -57,10 +58,7 @@ const Customers = () => {
                 <Users className="h-6 w-6 text-primary-500" />
                 <h1 className="text-2xl font-bold">Customers</h1>
               </div>
-              <Button>
-                <Plus className="mr-2" />
-                Add Customer
-              </Button>
+              <AddCustomerDialog />
             </div>
 
             <div className="mb-6">
