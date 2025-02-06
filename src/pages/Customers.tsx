@@ -40,7 +40,8 @@ const Customers = () => {
     customer.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'No date';
     const date = parseISO(dateString);
     return isValid(date) ? format(date, 'MMM d, yyyy') : 'Invalid date';
   };
