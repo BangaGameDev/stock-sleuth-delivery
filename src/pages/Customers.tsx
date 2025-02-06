@@ -1,3 +1,4 @@
+
 import { Users, Search, Plus, Pen, Trash } from "lucide-react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
@@ -16,7 +17,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { format } from "date-fns";
+import { format, isValid, parseISO } from "date-fns";
 
 const Customers = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -38,6 +39,11 @@ const Customers = () => {
     customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     customer.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const formatDate = (dateString: string) => {
+    const date = parseISO(dateString);
+    return isValid(date) ? format(date, 'MMM d, yyyy') : 'Invalid date';
+  };
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -101,7 +107,7 @@ const Customers = () => {
                         <TableCell>{customer.address}</TableCell>
                         <TableCell>{customer.orders}</TableCell>
                         <TableCell>
-                          {format(new Date(customer.join_date), 'MMM d, yyyy')}
+                          {formatDate(customer.join_date)}
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
