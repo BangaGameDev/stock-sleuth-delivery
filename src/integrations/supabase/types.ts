@@ -59,6 +59,9 @@ export type Database = {
           deliveries: number | null
           email: string
           id: string
+          id_document_path: string | null
+          id_document_uploaded_at: string | null
+          id_document_verified: boolean | null
           name: string
           phone: string
           rating: number | null
@@ -68,6 +71,9 @@ export type Database = {
           deliveries?: number | null
           email: string
           id?: string
+          id_document_path?: string | null
+          id_document_uploaded_at?: string | null
+          id_document_verified?: boolean | null
           name: string
           phone: string
           rating?: number | null
@@ -77,6 +83,9 @@ export type Database = {
           deliveries?: number | null
           email?: string
           id?: string
+          id_document_path?: string | null
+          id_document_uploaded_at?: string | null
+          id_document_verified?: boolean | null
           name?: string
           phone?: string
           rating?: number | null
