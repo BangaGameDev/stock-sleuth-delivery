@@ -1,3 +1,4 @@
+
 import { Package, Search, Plus, Pen, Trash } from "lucide-react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
@@ -14,32 +15,31 @@ import {
 } from "@/components/ui/table";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const Orders = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Sample data - replace with actual data fetching
-  const orders: Order[] = [
-    {
-      id: "1",
-      clientName: "John Doe",
-      status: "pending",
-      address: "123 Main St",
-      date: "2024-03-15",
-      total: 150.00,
-    },
-    {
-      id: "2",
-      clientName: "Jane Smith",
-      status: "in_progress",
-      address: "456 Oak Ave",
-      date: "2024-03-15",
-      total: 75.50,
-    },
-  ];
+  const { data: orders = [], isLoading } = useQuery({
+    queryKey: ['orders'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          customers (
+            name
+          )
+        `);
+      
+      if (error) throw error;
+      return data;
+    }
+  });
 
   const filteredOrders = orders.filter(order =>
-    order.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    order.customers?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     order.id.includes(searchTerm)
   );
 
@@ -71,49 +71,57 @@ const Orders = () => {
             </div>
 
             <div className="bg-white rounded-lg shadow">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Order ID</TableHead>
-                    <TableHead>Client</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Address</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredOrders.map((order) => (
-                    <TableRow key={order.id}>
-                      <TableCell>{order.id}</TableCell>
-                      <TableCell>{order.clientName}</TableCell>
-                      <TableCell>
-                        <span className={`px-2 py-1 rounded text-sm ${
-                          order.status === 'delivered' ? 'bg-green-100 text-green-800' :
-                          order.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
-                          'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {order.status}
-                        </span>
-                      </TableCell>
-                      <TableCell>{order.address}</TableCell>
-                      <TableCell>{order.date}</TableCell>
-                      <TableCell>${order.total.toFixed(2)}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button variant="ghost" size="icon">
-                            <Pen className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon">
-                            <Trash className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+              {isLoading ? (
+                <div className="p-8 text-center text-gray-500">Loading orders...</div>
+              ) : filteredOrders.length === 0 ? (
+                <div className="p-8 text-center text-gray-500">
+                  {searchTerm ? "No orders found matching your search." : "No orders placed yet."}
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Order ID</TableHead>
+                      <TableHead>Client</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Address</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Total</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredOrders.map((order) => (
+                      <TableRow key={order.id}>
+                        <TableCell>{order.id}</TableCell>
+                        <TableCell>{order.customers?.name}</TableCell>
+                        <TableCell>
+                          <span className={`px-2 py-1 rounded text-sm ${
+                            order.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                            order.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+                            'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {order.status}
+                          </span>
+                        </TableCell>
+                        <TableCell>{order.address}</TableCell>
+                        <TableCell>{new Date(order.date).toLocaleDateString()}</TableCell>
+                        <TableCell>${order.total.toFixed(2)}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button variant="ghost" size="icon">
+                              <Pen className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon">
+                              <Trash className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </div>
           </div>
         </main>

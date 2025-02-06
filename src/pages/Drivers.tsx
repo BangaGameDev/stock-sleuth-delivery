@@ -1,3 +1,4 @@
+
 import { Truck, Search, Plus, Pen, Trash } from "lucide-react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
@@ -14,31 +15,23 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const Drivers = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Sample data - replace with actual data fetching
-  const drivers: Driver[] = [
-    {
-      id: "1",
-      name: "Mike Johnson",
-      email: "mike@example.com",
-      phone: "+1 234-567-8903",
-      status: "active",
-      deliveries: 150,
-      rating: 4.8,
-    },
-    {
-      id: "2",
-      name: "Sarah Wilson",
-      email: "sarah@example.com",
-      phone: "+1 234-567-8904",
-      status: "inactive",
-      deliveries: 120,
-      rating: 4.5,
-    },
-  ];
+  const { data: drivers = [], isLoading } = useQuery({
+    queryKey: ['drivers'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('drivers')
+        .select('*');
+      
+      if (error) throw error;
+      return data;
+    }
+  });
 
   const filteredDrivers = drivers.filter(driver =>
     driver.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -73,48 +66,56 @@ const Drivers = () => {
             </div>
 
             <div className="bg-white rounded-lg shadow">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Deliveries</TableHead>
-                    <TableHead>Rating</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredDrivers.map((driver) => (
-                    <TableRow key={driver.id}>
-                      <TableCell>{driver.name}</TableCell>
-                      <TableCell>{driver.email}</TableCell>
-                      <TableCell>{driver.phone}</TableCell>
-                      <TableCell>
-                        <span className={`px-2 py-1 rounded text-sm ${
-                          driver.status === 'active' ? 'bg-green-100 text-green-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {driver.status}
-                        </span>
-                      </TableCell>
-                      <TableCell>{driver.deliveries}</TableCell>
-                      <TableCell>{driver.rating.toFixed(1)}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button variant="ghost" size="icon">
-                            <Pen className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon">
-                            <Trash className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+              {isLoading ? (
+                <div className="p-8 text-center text-gray-500">Loading drivers...</div>
+              ) : filteredDrivers.length === 0 ? (
+                <div className="p-8 text-center text-gray-500">
+                  {searchTerm ? "No drivers found matching your search." : "No drivers added yet."}
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Deliveries</TableHead>
+                      <TableHead>Rating</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredDrivers.map((driver) => (
+                      <TableRow key={driver.id}>
+                        <TableCell>{driver.name}</TableCell>
+                        <TableCell>{driver.email}</TableCell>
+                        <TableCell>{driver.phone}</TableCell>
+                        <TableCell>
+                          <span className={`px-2 py-1 rounded text-sm ${
+                            driver.status === 'active' ? 'bg-green-100 text-green-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
+                            {driver.status}
+                          </span>
+                        </TableCell>
+                        <TableCell>{driver.deliveries}</TableCell>
+                        <TableCell>{driver.rating?.toFixed(1) ?? "N/A"}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button variant="ghost" size="icon">
+                              <Pen className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon">
+                              <Trash className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </div>
           </div>
         </main>

@@ -5,22 +5,46 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus } from "lucide-react";
-import { Driver } from "@/lib/types";
+import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export function AddDriverDialog() {
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically make an API call to save the driver
-    console.log("New driver data:", formData);
-    setOpen(false);
-    setFormData({ name: "", email: "", phone: "" });
+    setLoading(true);
+    
+    try {
+      const { error } = await supabase
+        .from('drivers')
+        .insert([formData]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Driver added successfully",
+      });
+      
+      setOpen(false);
+      setFormData({ name: "", email: "", phone: "" });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add driver. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -68,7 +92,9 @@ export function AddDriverDialog() {
             </div>
           </div>
           <div className="flex justify-end">
-            <Button type="submit">Save Driver</Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? "Adding..." : "Save Driver"}
+            </Button>
           </div>
         </form>
       </DialogContent>

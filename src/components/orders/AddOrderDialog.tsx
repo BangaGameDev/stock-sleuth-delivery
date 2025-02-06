@@ -5,22 +5,63 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus } from "lucide-react";
-import { Order } from "@/lib/types";
+import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export function AddOrderDialog() {
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
-    clientName: "",
+    customer_id: "",
     address: "",
     total: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { data: customers = [] } = useQuery({
+    queryKey: ['customers'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('customers')
+        .select('id, name');
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically make an API call to save the order
-    console.log("New order data:", formData);
-    setOpen(false);
-    setFormData({ clientName: "", address: "", total: "" });
+    setLoading(true);
+    
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .insert([{
+          ...formData,
+          total: parseFloat(formData.total)
+        }]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Order created successfully",
+      });
+      
+      setOpen(false);
+      setFormData({ customer_id: "", address: "", total: "" });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create order. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -38,13 +79,23 @@ export function AddOrderDialog() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="clientName">Client Name</Label>
-              <Input
-                id="clientName"
-                value={formData.clientName}
-                onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
+              <Label htmlFor="customer">Customer</Label>
+              <Select
+                value={formData.customer_id}
+                onValueChange={(value) => setFormData({ ...formData, customer_id: value })}
                 required
-              />
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a customer" />
+                </SelectTrigger>
+                <SelectContent>
+                  {customers.map((customer) => (
+                    <SelectItem key={customer.id} value={customer.id}>
+                      {customer.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="address">Delivery Address</Label>
@@ -68,7 +119,9 @@ export function AddOrderDialog() {
             </div>
           </div>
           <div className="flex justify-end">
-            <Button type="submit">Create Order</Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? "Creating..." : "Create Order"}
+            </Button>
           </div>
         </form>
       </DialogContent>
