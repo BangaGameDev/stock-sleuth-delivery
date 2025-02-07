@@ -27,10 +27,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      console.log("Auth state changed:", _event, session?.user.id);
       setSession(session);
       if (session) {
-        fetchUserRole(session.user.id);
+        await fetchUserRole(session.user.id);
       } else {
         setUserRole(null);
       }
@@ -41,32 +42,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchUserRole = async (userId: string) => {
     try {
+      console.log("Fetching role for user:", userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', userId)
-        .maybeSingle();
+        .single();
 
       if (error) {
         console.error('Error fetching user role:', error);
         toast({
           title: "Error fetching user role",
-          description: error.message,
+          description: "Please try logging out and back in. If the problem persists, contact support.",
           variant: "destructive",
         });
         return;
       }
 
       if (!data) {
-        console.error('No profile found for user');
+        console.error('No profile found for user:', userId);
         toast({
           title: "Profile not found",
-          description: "No profile found for user. Please contact support.",
+          description: "Your profile could not be loaded. Please try logging out and back in.",
           variant: "destructive",
         });
         return;
       }
 
+      console.log("Fetched user role:", data.role);
       setUserRole(data.role);
     } catch (error) {
       console.error('Error in fetchUserRole:', error);
@@ -95,7 +98,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signUp = async (email: string, password: string, role: 'driver' | 'customer') => {
-    const { error } = await supabase.auth.signUp({
+    const { error: signUpError, data } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -105,13 +108,35 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       },
     });
 
-    if (error) {
+    if (signUpError) {
       toast({
         title: "Error signing up",
-        description: error.message,
+        description: signUpError.message,
         variant: "destructive",
       });
-      throw error;
+      throw signUpError;
+    }
+
+    // After successful signup, ensure profile is created
+    if (data.user) {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert([
+          {
+            id: data.user.id,
+            role: role,
+          },
+        ])
+        .single();
+
+      if (profileError) {
+        console.error('Error creating profile:', profileError);
+        toast({
+          title: "Error creating profile",
+          description: "Your account was created but there was an error setting up your profile.",
+          variant: "destructive",
+        });
+      }
     }
 
     toast({
