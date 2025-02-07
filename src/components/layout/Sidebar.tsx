@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+
+import { Link, useNavigate } from "react-router-dom";
 import {
   Package,
   Users,
@@ -8,19 +9,28 @@ import {
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface SidebarProps {
   className?: string;
 }
 
 export function Sidebar({ className }: SidebarProps) {
+  const { signOut, userRole } = useAuth();
+  const navigate = useNavigate();
+
   const menuItems = [
-    { icon: BarChart3, label: "Dashboard", path: "/" },
-    { icon: Package, label: "Orders", path: "/orders" },
-    { icon: Users, label: "Customers", path: "/customers" },
-    { icon: Truck, label: "Drivers", path: "/drivers" },
-    { icon: Settings, label: "Settings", path: "/settings" },
-  ];
+    { icon: BarChart3, label: "Dashboard", path: "/", roles: ["admin", "driver", "customer"] },
+    { icon: Package, label: "Orders", path: "/orders", roles: ["admin", "driver", "customer"] },
+    { icon: Users, label: "Customers", path: "/customers", roles: ["admin"] },
+    { icon: Truck, label: "Drivers", path: "/drivers", roles: ["admin"] },
+    { icon: Settings, label: "Settings", path: "/settings", roles: ["admin", "driver", "customer"] },
+  ].filter(item => item.roles.includes(userRole || ""));
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/login");
+  };
 
   return (
     <div
@@ -47,7 +57,10 @@ export function Sidebar({ className }: SidebarProps) {
         </nav>
       </div>
       <div className="mt-auto border-t p-4">
-        <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 hover:bg-gray-100">
+        <button
+          onClick={handleLogout}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 hover:bg-gray-100"
+        >
           <LogOut className="h-4 w-4" />
           Logout
         </button>
