@@ -40,18 +40,42 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const fetchUserRole = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', userId)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .maybeSingle();
 
-    if (error) {
-      console.error('Error fetching user role:', error);
-      return;
+      if (error) {
+        console.error('Error fetching user role:', error);
+        toast({
+          title: "Error fetching user role",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!data) {
+        console.error('No profile found for user');
+        toast({
+          title: "Profile not found",
+          description: "No profile found for user. Please contact support.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setUserRole(data.role);
+    } catch (error) {
+      console.error('Error in fetchUserRole:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while fetching user role",
+        variant: "destructive",
+      });
     }
-
-    setUserRole(data.role);
   };
 
   const signIn = async (email: string, password: string) => {
