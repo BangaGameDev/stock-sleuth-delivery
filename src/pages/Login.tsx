@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { Package } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -21,6 +22,7 @@ const Login = () => {
   const [role, setRole] = useState<"driver" | "customer">("customer");
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,8 +33,21 @@ const Login = () => {
       } else {
         await signUp(email, password, role);
       }
-    } catch (error) {
-      console.error("Authentication error:", error);
+    } catch (error: any) {
+      if (error?.message?.includes("User already registered")) {
+        toast({
+          title: "Account exists",
+          description: "This email is already registered. Please try logging in instead.",
+          variant: "destructive",
+        });
+        setIsLogin(true); // Switch to login mode
+      } else {
+        toast({
+          title: "Error",
+          description: error?.message || "An error occurred during authentication",
+          variant: "destructive",
+        });
+      }
     }
   };
 
