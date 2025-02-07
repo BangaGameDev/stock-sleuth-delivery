@@ -1,7 +1,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { Session } from '@supabase/supabase-js';
 
 type AuthContextType = {
@@ -59,16 +59,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return;
       }
 
-      if (!data) {
-        console.error('No profile found for user:', userId);
-        toast({
-          title: "Profile not found",
-          description: "Your profile could not be loaded. Please try logging out and back in.",
-          variant: "destructive",
-        });
-        return;
-      }
-
       console.log("Fetched user role:", data.role);
       setUserRole(data.role);
     } catch (error) {
@@ -87,14 +77,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       password,
     });
 
-    if (error) {
-      toast({
-        title: "Error signing in",
-        description: error.message,
-        variant: "destructive",
-      });
-      throw error;
-    }
+    if (error) throw error;
   };
 
   const signUp = async (email: string, password: string, role: 'driver' | 'customer') => {
@@ -108,14 +91,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       },
     });
 
-    if (signUpError) {
-      toast({
-        title: "Error signing up",
-        description: signUpError.message,
-        variant: "destructive",
-      });
-      throw signUpError;
-    }
+    if (signUpError) throw signUpError;
 
     // After successful signup, ensure profile is created
     if (data.user) {
@@ -131,30 +107,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (profileError) {
         console.error('Error creating profile:', profileError);
-        toast({
-          title: "Error creating profile",
-          description: "Your account was created but there was an error setting up your profile.",
-          variant: "destructive",
-        });
+        throw new Error('Error creating user profile');
       }
     }
-
-    toast({
-      title: "Success",
-      description: "Account created successfully! Please verify your email.",
-    });
   };
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast({
-        title: "Error signing out",
-        description: error.message,
-        variant: "destructive",
-      });
-      throw error;
-    }
+    if (error) throw error;
   };
 
   return (

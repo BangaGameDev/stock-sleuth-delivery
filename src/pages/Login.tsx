@@ -23,24 +23,39 @@ const Login = () => {
   const { signIn, signUp, userRole } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
+
     try {
       if (isLogin) {
         await signIn(email, password);
+        console.log("Signed in successfully, user role:", userRole);
+        toast({
+          title: "Welcome back!",
+          description: "You have successfully signed in.",
+        });
+
         // Redirect based on user role
         if (userRole === 'admin') {
-          navigate("/customers"); // Admin dashboard shows customers management
+          navigate("/customers");
         } else if (userRole === 'driver') {
-          navigate("/orders"); // Drivers see their orders
+          navigate("/orders");
         } else {
-          navigate("/"); // Regular customers go to main dashboard
+          navigate("/");
         }
       } else {
         await signUp(email, password, role);
+        toast({
+          title: "Account created!",
+          description: "Your account has been created successfully. Please sign in.",
+        });
+        setIsLogin(true); // Switch to login mode after successful signup
       }
     } catch (error: any) {
+      console.error("Auth error:", error);
       if (error?.message?.includes("User already registered")) {
         toast({
           title: "Account exists",
@@ -61,6 +76,8 @@ const Login = () => {
           variant: "destructive",
         });
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -86,6 +103,8 @@ const Login = () => {
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                className="block w-full"
+                disabled={isLoading}
               />
             </div>
             <div>
@@ -98,11 +117,17 @@ const Login = () => {
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className="block w-full"
+                disabled={isLoading}
               />
             </div>
             {!isLogin && (
               <div>
-                <Select value={role} onValueChange={(value: "driver" | "customer") => setRole(value)}>
+                <Select 
+                  value={role} 
+                  onValueChange={(value: "driver" | "customer") => setRole(value)}
+                  disabled={isLoading}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
@@ -116,8 +141,12 @@ const Login = () => {
           </div>
 
           <div>
-            <Button type="submit" className="w-full">
-              {isLogin ? "Sign in" : "Sign up"}
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={isLoading}
+            >
+              {isLoading ? "Please wait..." : (isLogin ? "Sign in" : "Sign up")}
             </Button>
           </div>
 
@@ -127,6 +156,7 @@ const Login = () => {
               variant="link"
               onClick={() => setIsLogin(!isLogin)}
               className="text-sm"
+              disabled={isLoading}
             >
               {isLogin
                 ? "Don't have an account? Sign up"
