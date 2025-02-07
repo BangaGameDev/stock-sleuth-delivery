@@ -20,7 +20,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<"driver" | "customer">("customer");
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, userRole } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -29,7 +29,14 @@ const Login = () => {
     try {
       if (isLogin) {
         await signIn(email, password);
-        navigate("/");
+        // Redirect based on user role
+        if (userRole === 'admin') {
+          navigate("/customers"); // Admin dashboard shows customers management
+        } else if (userRole === 'driver') {
+          navigate("/orders"); // Drivers see their orders
+        } else {
+          navigate("/"); // Regular customers go to main dashboard
+        }
       } else {
         await signUp(email, password, role);
       }

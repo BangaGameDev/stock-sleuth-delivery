@@ -22,8 +22,16 @@ const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode;
     return <Navigate to="/login" replace />;
   }
 
+  // If a specific role is required and user doesn't have it (and isn't admin)
   if (requiredRole && userRole !== requiredRole && userRole !== 'admin') {
-    return <Navigate to="/" replace />;
+    // Redirect based on user role
+    if (userRole === 'driver') {
+      return <Navigate to="/orders" replace />;
+    } else if (userRole === 'customer') {
+      return <Navigate to="/" replace />;
+    } else if (userRole === 'admin') {
+      return <Navigate to="/customers" replace />;
+    }
   }
 
   return <>{children}</>;
