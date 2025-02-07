@@ -41,6 +41,12 @@ const Login = () => {
           variant: "destructive",
         });
         setIsLogin(true); // Switch to login mode
+      } else if (error?.message?.includes("Invalid login credentials")) {
+        toast({
+          title: "Invalid credentials",
+          description: "The email or password you entered is incorrect. Please try again.",
+          variant: "destructive",
+        });
       } else {
         toast({
           title: "Error",
