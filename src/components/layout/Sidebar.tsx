@@ -25,12 +25,14 @@ export function Sidebar({ className }: SidebarProps) {
     { icon: Users, label: "Customers", path: "/customers", roles: ["admin"] },
     { icon: Truck, label: "Drivers", path: "/drivers", roles: ["admin"] },
     { icon: Settings, label: "Settings", path: "/settings", roles: ["admin", "driver", "customer"] },
-  ].filter(item => item.roles.includes(userRole || ""));
+  ].filter(item => !item.roles || item.roles.includes(userRole || "") || userRole === "admin");
 
   const handleLogout = async () => {
     await signOut();
     navigate("/login");
   };
+
+  console.log("Current user role:", userRole); // Debug log to check user role
 
   return (
     <div
